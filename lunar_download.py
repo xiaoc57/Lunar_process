@@ -10,11 +10,11 @@ import wget
 
 class LunarDownload:
 
-    def __init__(self, root_dir, n = 100, is_o = True, username = '', password = ''):
+    def __init__(self, root_dir, is_o = True, username = '', password = ''):
 
         self.root_dir = root_dir
         # self.config = config
-        self.n = n
+
 
         chrome_options = webdriver.ChromeOptions()
         # chrome_options.add_argument(config["chrome_options"])
@@ -78,7 +78,7 @@ class LunarDownload:
             self.driver.find_element(by="xpath", value=config["cxpath"]).click()
             self.driver.find_element(by="xpath", value=config["txpath"][idx]).click()
             print(f"进入了{type}")
-            for k in range(self.n):
+            for k in range(config["n"]):
                 time.sleep(3)
                 self.driver.find_element(by="class name", value='x-column-header-text-wrapper').click()
                 self.driver.find_element(by="xpath", value='//*[@id="addListToCar-btnInnerEl"]').click()
@@ -100,7 +100,7 @@ class LunarDownload:
             if not os.path.exists(os.path.join("data",config["name"], type)):  # 判断是否存在文件夹如果不存在则创建为文件夹
                 os.makedirs(os.path.join("data",config["name"], type))
             path = os.path.join("data",config["name"], type)
-            all_num = self.n * 10
+            all_num = config['n'] * 10
 
             page_num = int(math.ceil(all_num / 20))
             time.sleep(10)
@@ -161,56 +161,94 @@ class LunarDownload:
             time.sleep(5)
 
             if config['name'] == "嫦娥四号":
-                for epoch in range(self.n):
+                for epoch in range(config['n']):
                     file_list = self.driver.find_elements(by="class name", value="search-item-title")
                     for file in file_list:
                         file_name = file.text
 
                         download_path = config['download_url'][idx].format(file_name.split('_')[2].split('-')[0]) + file_name
-                        print(download_path)
-                        wget.download(download_path,os.path.join(self.root_dir,config["name"], type,file_name))
-                        time.sleep(2)
+
+                        if self.check_file_on(os.path.join(self.root_dir,config["name"], type,file_name)):
+                            wget.download(download_path,os.path.join(self.root_dir,config["name"], type,file_name))
+                            print(download_path)
+                            time.sleep(2)
+                        else:
+                            print(f'存在{file_name}')
                     button_list = self.driver.find_elements(by="class name",
                                                             value='x-btn.x-unselectable.x-box-item.x-toolbar-item.x-btn-default-toolbar-small')
                     button_list[2].click()
                     time.sleep(5)
             elif config['name'] == "嫦娥三号":
-                for epoch in range(self.n):
+                for epoch in range(config['n']):
                     file_list = self.driver.find_elements(by="class name", value="search-item-title")
                     for file in file_list:
                         file_name = file.text
                         if file_name[-2:] == '2A' and type == "全景相机":
                             download_path = config['download_url'][idx][file_name[-2:]].format(
                                 file_name.split('_')[2].split('-')[0]) + file_name
-                            print(download_path)
-                            wget.download(download_path, os.path.join(self.root_dir, config["name"], type, file_name))
-                            time.sleep(2)
+                            if self.check_file_on(os.path.join(self.root_dir, config["name"], type, file_name)):
+                                wget.download(download_path,
+                                              os.path.join(self.root_dir, config["name"], type, file_name))
+                                print(download_path)
+                                time.sleep(2)
+                            else:
+                                print(f'存在{file_name}')
                         else:
                             download_path = config['download_url'][idx][file_name[-2:]] + file_name
-                            print(download_path)
-                            wget.download(download_path, os.path.join(self.root_dir, config["name"], type, file_name))
-                            time.sleep(2)
+                            if self.check_file_on(os.path.join(self.root_dir, config["name"], type, file_name)):
+                                wget.download(download_path,
+                                              os.path.join(self.root_dir, config["name"], type, file_name))
+                                print(download_path)
+                                time.sleep(2)
+                            else:
+                                print(f'存在{file_name}')
 
                     button_list = self.driver.find_elements(by="class name",
                                                             value='x-btn.x-unselectable.x-box-item.x-toolbar-item.x-btn-default-toolbar-small')
                     button_list[2].click()
                     time.sleep(5)
 
+            elif config['name'] == "嫦娥五号":
+                for epoch in range(config['n']):
+                    file_list = self.driver.find_elements(by="class name", value="search-item-title")
+                    for file in file_list:
+                        file_name = file.text
+
+                        download_path = config['download_url'][idx].format(file_name.split('_')[2].split('-')[0], file_name.split('_')[2]) + file_name
+                        if self.check_file_on(os.path.join(self.root_dir, config["name"], type, file_name)):
+                            wget.download(download_path, os.path.join(self.root_dir, config["name"], type, file_name))
+                            print(download_path)
+                            time.sleep(2)
+                        else:
+                            print(f'存在{file_name}')
+                    button_list = self.driver.find_elements(by="class name",
+                                                            value='x-btn.x-unselectable.x-box-item.x-toolbar-item.x-btn-default-toolbar-small')
+                    button_list[2].click()
+                    time.sleep(5)
 
     def test(self):
 
         k = self.driver.find_elements(by="class name", value="search-item-title")
         print(k)
 
+    def check_file_on(self, path):
+
+        if os.path.exists(path):
+            return False
+        else:
+            return True
+
 if __name__ == "__main__":
 
+    n = 20
 
-    downloader = LunarDownload(".\\", n = 20, username="xiaoc57", password="Jy20010131")
+    downloader = LunarDownload(".\\" , username="xiaoc57", password="Jy20010131")
     downloader.make_type_dir("data")
     # downloader.test()
     configs = [
         {
             "name": "嫦娥三号",
+            "n": n,
             "cxpath": '//*[@id="starRow"]/form/ul/li[5]/label',
             "download_type": ['全景相机', '地形地貌相机'],
             "txpath": ['//*[@id="cameraRow"]/form/ul/li[5]/label/span[2]',
@@ -232,24 +270,30 @@ if __name__ == "__main__":
                 # 'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/{}/C/2B/2023-07/',
                 # 'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/{}/I/2C/2019-03/'
         },
-        # {
-        #     "name": "嫦娥四号",
-        #     "cxpath": '//*[@id="starRow"]/form/ul/li[7]/label/span[4]',
-        #     "download_type": ['全景相机', '地形地貌相机'],
-        #     "txpath": ['//*[@id="cameraRow"]/form/ul/li[4]/label', '//*[@id="cameraRow"]/form/ul/li[2]/label'],
-        #     "download_url": [
-        #         # 'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/PCAML/C/2B/2023-07/CE4_GRAS_PCAMR-C-055_SCI_N_20230615051647_20230615051647_0296_B.2B'
-        #         # 'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/PCAMR/C/2B/2023-07/CE4_GRAS_PCAMR-C-055_SCI_N_20230615051647_20230615051647_0296_B.2B'
-        #         'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/{}/C/2B/2023-07/',
-        #         'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/{}/I/2C/2019-03/']
-        # },
-        # {
-        #     "name": "嫦娥五号",
-        #     "cxpath": '//*[@id="starRow"]/form/ul/li[9]/label',
-        #     "download_type": ['全景相机'],
-        #     "txpath": ['//*[@id="cameraRow"]/form/ul/li[2]/label']
-        # }
-        'https://moon.bao.ac.cn/ce5web/cedownload/CE5ROLL/PCAML/PCAML-I-008/2B/202012/CE5-L_GRAS_PCAML-I-008_SCI_N_20201203054903_20201203054903_0004_A.2BL'
+        {
+            "name": "嫦娥四号",
+            "n": n,
+            "cxpath": '//*[@id="starRow"]/form/ul/li[7]/label',
+            "download_type": ['全景相机', '地形地貌相机'],
+            "txpath": ['//*[@id="cameraRow"]/form/ul/li[4]/label', '//*[@id="cameraRow"]/form/ul/li[2]/label'],
+            "download_url": [
+                # 'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/PCAML/C/2B/2023-07/CE4_GRAS_PCAMR-C-055_SCI_N_20230615051647_20230615051647_0296_B.2B'
+                # 'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/PCAMR/C/2B/2023-07/CE4_GRAS_PCAMR-C-055_SCI_N_20230615051647_20230615051647_0296_B.2B'
+                'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/{}/C/2B/2023-07/',
+                'https://moon.bao.ac.cn/ce5web/cedownload/CE4ROLL/CE4/{}/I/2C/2019-03/']
+        },
+        {
+            "name": "嫦娥五号",
+            "n": n,
+            "cxpath": '//*[@id="starRow"]/form/ul/li[9]/label',
+            "download_type": ['全景相机'],
+            "txpath": ['//*[@id="cameraRow"]/form/ul/li[2]/label'],
+            "download_url": [
+                'https://moon.bao.ac.cn/ce5web/cedownload/CE5ROLL/{}/{}/2B/202012/'
+                # 'CE5-L_GRAS_PCAML-I-008_SCI_N_20201203054903_20201203054903_0004_A.2BL'
+            ]
+        }
+        # 'https://moon.bao.ac.cn/ce5web/cedownload/CE5ROLL/PCAML/PCAML-I-008/2B/202012/CE5-L_GRAS_PCAML-I-008_SCI_N_20201203054903_20201203054903_0004_A.2BL'
     ]
 
     for config in configs:
