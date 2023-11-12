@@ -1,0 +1,10 @@
+tqdm==4.65.0
+selenium==4.15.2
+webdriver-manager==3.8.6
+numpy
+pillow
+matplotlib
+pds4_tools
+scikit-image
+colour_demosaicing
+opencv-python==4.8.1.78
